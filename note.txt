@@ -1,3 +1,7 @@
 v1
 lệnh cài đặt go lang: 
 https://github.com/Huykutephomaique/comunicate_with_ras
+cat ~/.ssh/id_rsa.pub
+git remote set-url origin git@github.com:username/repository.git
+ssh -T git@github.com
+git config --global credential.helper store
