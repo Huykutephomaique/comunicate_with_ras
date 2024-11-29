@@ -5,10 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"mime/multipart"
 	"net/http"
 	"os"
-	"path/filepath"
 	"time"
 )
 
@@ -52,13 +50,6 @@ func main() {
 	// Thêm name vào systemData
 	systemData.Name = deviceName
 
-	// Convert RTC sang timestamp
-	timestamp, err := convertRtcToTimestamp(systemData.Rtc)
-	if err != nil {
-		fmt.Printf("Error converting RTC: %v\n", err)
-		return
-	}
-
 	// Tạo JSON mới với name
 	modifiedJSON, err := json.Marshal(systemData)
 	if err != nil {
@@ -66,46 +57,15 @@ func main() {
 		return
 	}
 
-	// Tạo multipart form
-	var buf bytes.Buffer
-	w := multipart.NewWriter(&buf)
-
-	// Thêm timestamp vào form
-	if err := w.WriteField("timestamp", fmt.Sprintf("%d", timestamp)); err != nil {
-		fmt.Printf("Error adding timestamp: %v\n", err)
-		return
-	}
-
-	// Thêm name vào form
-	if err := w.WriteField("name", deviceName); err != nil {
-		fmt.Printf("Error adding name: %v\n", err)
-		return
-	}
-
-	// Tạo file part với JSON đã được sửa đổi
-	fw, err := w.CreateFormFile("file", filepath.Base(filePath))
-	if err != nil {
-		fmt.Printf("Error creating form file: %v\n", err)
-		return
-	}
-
-	// Ghi JSON đã sửa vào form
-	if _, err = fw.Write(modifiedJSON); err != nil {
-		fmt.Printf("Error writing modified JSON: %v\n", err)
-		return
-	}
-
-	w.Close()
-
 	// Tạo request
-	req, err := http.NewRequest("POST", "http://47.107.233.129:10060/upload/", &buf)
+	req, err := http.NewRequest("POST", "http://47.107.233.129:10060/upload/", bytes.NewBuffer(modifiedJSON))
 	if err != nil {
 		fmt.Printf("Error creating request: %v\n", err)
 		return
 	}
 
 	// Set headers
-	req.Header.Set("Content-Type", w.FormDataContentType())
+	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer ABCDEFG")
 
 	// Thêm timeout cho client
