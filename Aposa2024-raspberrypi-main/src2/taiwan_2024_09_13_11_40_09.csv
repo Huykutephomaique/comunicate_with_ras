@@ -1,0 +1,10 @@
+{"name": "APOSA1", "type": "info", "current": 2651, "volt": 147, "valve": 1437, "hpa1": 5800, "hpa2": 5797, "hpa3": 1000, "temp": 38, "cnt": 40088, "ms": 480, "rtc": "20240913113958", "ostime": "20240913113959"}
+{"name": "APOSA1", "type": "info", "current": 2653, "volt": 147, "valve": 1441, "hpa1": 5800, "hpa2": 5797, "hpa3": 1001, "temp": 38, "cnt": 40188, "ms": 480, "rtc": "20240913113959", "ostime": "20240913114000"}
+{"name": "APOSA1", "type": "info", "current": 2653, "volt": 147, "valve": 1439, "hpa1": 5803, "hpa2": 5798, "hpa3": 1001, "temp": 38, "cnt": 40288, "ms": 480, "rtc": "20240913114000", "ostime": "20240913114001"}
+{"name": "APOSA1", "type": "info", "current": 2652, "volt": 147, "valve": 1438, "hpa1": 5803, "hpa2": 5799, "hpa3": 1001, "temp": 38, "cnt": 40388, "ms": 480, "rtc": "20240913114001", "ostime": "20240913114002"}
+{"name": "APOSA1", "type": "info", "current": 2650, "volt": 147, "valve": 1437, "hpa1": 5803, "hpa2": 5799, "hpa3": 1001, "temp": 38, "cnt": 40489, "ms": 490, "rtc": "20240913114002", "ostime": "20240913114003"}
+{"name": "APOSA1", "type": "info", "current": 2649, "volt": 147, "valve": 1435, "hpa1": 5804, "hpa2": 5801, "hpa3": 1000, "temp": 38, "cnt": 40589, "ms": 490, "rtc": "20240913114003", "ostime": "20240913114004"}
+{"name": "APOSA1", "type": "info", "current": 2652, "volt": 147, "valve": 1440, "hpa1": 5804, "hpa2": 5802, "hpa3": 1001, "temp": 38, "cnt": 40689, "ms": 490, "rtc": "20240913114004", "ostime": "20240913114005"}
+{"name": "APOSA1", "type": "info", "current": 2654, "volt": 147, "valve": 1436, "hpa1": 5806, "hpa2": 5803, "hpa3": 1001, "temp": 38, "cnt": 40789, "ms": 490, "rtc": "20240913114005", "ostime": "20240913114006"}
+{"name": "APOSA1", "type": "info", "current": 2654, "volt": 147, "valve": 1440, "hpa1": 5806, "hpa2": 5802, "hpa3": 1001, "temp": 38, "cnt": 40889, "ms": 490, "rtc": "20240913114006", "ostime": "20240913114007"}
+{"name": "APOSA1", "type": "info", "current": 2654, "volt": 147, "valve": 1438, "hpa1": 5807, "hpa2": 5803, "hpa3": 1001, "temp": 38, "cnt": 40989, "ms": 490, "rtc": "20240913114007", "ostime": "20240913114008"}

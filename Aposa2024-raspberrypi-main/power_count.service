@@ -1,0 +1,17 @@
+[Unit]
+Description=Power Count Service
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/Aposa2024-raspberrypi-main/power_count
+ExecStart=/root/Aposa2024-raspberrypi-main/power_count
+Restart=always
+RestartSec=5
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=power-count
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,17 @@
+[Unit]
+Description=Upload Data Service
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/APOSA-raspberry-main/upload_data
+ExecStart=/root/APOSA-raspberry-main/upload_data/upload_data
+Restart=always
+RestartSec=5
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=upload-data
+
+[Install]
+WantedBy=multi-user.target

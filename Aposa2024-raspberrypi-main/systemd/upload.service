@@ -1,0 +1,9 @@
+[Unit]
+Description=upload to taiwan.dockern.com
+
+[Service]
+Type=simple
+ExecStart=/root/git/Aposa2024-raspberrypi/upload_data/main
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,9 @@
+[Unit]
+Description=mabiki
+
+[Service]
+Type=simple
+ExecStart=/bin/bash /root/auto2.sh
+
+[Install]
+WantedBy=multi-user.target
