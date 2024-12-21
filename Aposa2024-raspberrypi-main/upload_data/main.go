@@ -237,7 +237,7 @@ func file_upload(file_path string, target_name string, url string) (int, error) 
 
 	w.Close()
 
-	req, err := http.NewRequest("POST", "http://47.107.233.129:10080/upload/", &buf)
+	req, err := http.NewRequest("POST", "http://192.168.1.123:6060/upload/", &buf)
 	if err != nil {
 		fmt.Printf("Error creating request: %v\n", err)
 		return 1, err
@@ -247,7 +247,7 @@ func file_upload(file_path string, target_name string, url string) (int, error) 
 	req.Header.Set("Content-Type", w.FormDataContentType())
 
 	fmt.Printf("Request prepared:\n")
-	fmt.Printf("URL: http://47.107.233.129:10080/upload/\n")
+	fmt.Printf("URL: http://192.168.1.123:6060/upload/\n")
 	fmt.Printf("Headers: Authorization: Bearer %s..., Content-Type: %s\n",
 		token[:10], w.FormDataContentType())
 
