@@ -17,6 +17,7 @@ def update_json_key(file_path, key ,value):
     Returns:
         bool: True nếu cập nhật thành công, False nếu xảy ra lỗi.
     """
+    rewrite_path = 'root/src/stk23_system.json'
     key = 'powerGoodCount'
     try:
         # Đọc file JSON
@@ -31,7 +32,7 @@ def update_json_key(file_path, key ,value):
             return False
 
         # Ghi lại file JSON
-        with open(file_path, 'w') as file:
+        with open(rewrite_path, 'w') as file:
             json.dump(data, file, indent=4)#indent = none
         return True
 
@@ -244,8 +245,8 @@ if __name__ == '__main__':
 
     filename = "taiwan_" + date_time + ".csv"
 
-    if os.path.exists(os.path.join(DST_DIR,'result.txt')):
-        os.rename(os.path.join(DST_DIR,'result.txt'),os.path.join(DST_DIR,filename))
-    else:
-        print("result.txt is not exist")
-    print(f"mabiitakazu is {tmp}")
+    # if os.path.exists(os.path.join(DST_DIR,'result.txt')):
+    #     os.rename(os.path.join(DST_DIR,'result.txt'),os.path.join(DST_DIR,filename))
+    # else:
+    #     print("result.txt is not exist")
+    # print(f"mabiitakazu is {tmp}")
