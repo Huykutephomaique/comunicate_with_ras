@@ -56,7 +56,7 @@ func main() {
 		fmt.Printf("Error creating modified JSON: %v\n", err)
 		return
 	}
-
+	fmt.Printf("Modified JSON: %s\n", string(modifiedJSON))
 	// Tạo request
 	req, err := http.NewRequest("POST", "http://47.107.233.129:10060/upload/", bytes.NewBuffer(modifiedJSON))
 	if err != nil {
