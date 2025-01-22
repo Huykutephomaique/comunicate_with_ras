@@ -245,8 +245,8 @@ if __name__ == '__main__':
 
     filename = "taiwan_" + date_time + ".csv"
 
-    # if os.path.exists(os.path.join(DST_DIR,'result.txt')):
-    #     os.rename(os.path.join(DST_DIR,'result.txt'),os.path.join(DST_DIR,filename))
-    # else:
-    #     print("result.txt is not exist")
-    # print(f"mabiitakazu is {tmp}")
+    if os.path.exists(os.path.join(DST_DIR,'result.txt')):
+        os.rename(os.path.join(DST_DIR,'result.txt'),os.path.join(DST_DIR,filename))
+    else:
+        print("result.txt is not exist")
+    print(f"mabiitakazu is {tmp}")
