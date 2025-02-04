@@ -5,47 +5,6 @@ import datetime
 import sys
 import serial
 import time
-import subprocess
-import signal
-
-def run_go_program(go_executable, timeout=5):
-    """
-    Chạy chương trình Go đã build và dừng nó sau một khoảng thời gian.
-
-    Args:
-        go_executable (str): Đường dẫn đến file Go đã build.
-        timeout (int): Thời gian chạy trước khi dừng (giây).
-
-    Returns:
-        bool: True nếu dừng thành công, False nếu có lỗi.
-    """
-    try:
-        # Chạy chương trình Go (không chờ kết quả)
-        process = subprocess.Popen([go_executable], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
-        print(f"Chương trình Go đang chạy với PID: {process.pid}")
-
-        # Chờ trong khoảng thời gian quy định
-        time.sleep(timeout)
-
-        # Kiểm tra xem tiến trình còn chạy không
-        if process.poll() is None:
-            print("Dừng chương trình Go...")
-            process.terminate()  # Gửi tín hiệu SIGTERM để dừng
-            time.sleep(1)  # Đợi 1 giây để tiến trình dừng hẳn
-
-            # Nếu tiến trình vẫn còn chạy, dùng SIGKILL
-            if process.poll() is None:
-                os.kill(process.pid, signal.SIGKILL)
-                print("Đã buộc dừng chương trình Go bằng SIGKILL.")
-
-        print("Chương trình Go đã được dừng.")
-        return True
-
-    except Exception as e:
-        print(f"Lỗi khi chạy chương trình Go: {e}")
-        return False
-    
 def update_json_key(file_path, key ,value):
     """
     Đọc file JSON, cập nhật giá trị của một khóa, và ghi lại file.
@@ -114,12 +73,11 @@ def writeCount():
     except Exception as e:
         print(f"ファイルの書き込みに失敗しました: {e}")
 
-def getHantei(preValue,volt,cnt,powercount,rtc_huy):
+def getHantei(preValue,volt,cnt,powercount):
 #    pdb.set_trace()
 #    print(f"cnt is {cnt}")
 #    print(f"preValue is {preValue}")
 #    print(f"volt is {volt}")
-    go_executable = "/root/Aposa2024-raspberrypi/power_count/main"
 
     if int(preValue) == int(volt):
 #        print("--------------------------------------------")
@@ -137,8 +95,6 @@ def getHantei(preValue,volt,cnt,powercount,rtc_huy):
         powercount += 1
         print(f'ghi power count neeeeeeeeeee{powercount}')
         update_json_key(powercount_path,'powerGoodCount',powercount)
-        update_json_key(powercount_path,'rtc',rtc_huy)
-        run_go_program(go_executable, timeout=3)
         with open('root/src2/powercount.txt','w') as f:
             f.write(str(powercount)+"\n")    
 
@@ -251,8 +207,7 @@ if __name__ == '__main__':
                     line = json.loads(line)
                     volt = line.get('volt')
                     g_volt = line.get('volt')
-                    rtc_huy = line.get('rtc')
-
+        
                     if volt is not None:
                         if volt > 15000:
                             volt = 24
@@ -261,7 +216,7 @@ if __name__ == '__main__':
                             volt = 0
                             g_volt = 0
 #                        hantei,volt,cnt = getHantei(preValue,volt,cnt)
-                        hantei,volt,cnt,powercount = getHantei(preValue,g_volt,g_cnt,powercount,rtc_huy)
+                        hantei,volt,cnt,powercount = getHantei(preValue,g_volt,g_cnt,powercount)
                         preValue = volt
                         g_cnt = cnt
 #                        print(f"g_cnt is {g_cnt}")
