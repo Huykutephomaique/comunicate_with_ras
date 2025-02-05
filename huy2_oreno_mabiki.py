@@ -59,7 +59,7 @@ def update_json_key(file_path, key ,value):
         bool: True nếu cập nhật thành công, False nếu xảy ra lỗi.
     """
     rewrite_path = 'root/src/stk23_system.json'
-    # key = 'powerGoodCount'
+    key = 'powerGoodCount'
     try:
         # Đọc file JSON
         with open(file_path, 'r') as file:
@@ -120,7 +120,7 @@ def getHantei(preValue,volt,cnt,powercount,rtc_huy):
 #    print(f"preValue is {preValue}")
 #    print(f"volt is {volt}")
     go_executable = "/root/Aposa2024-raspberrypi/power_count/main"
-    powercount_path = 'root/src/system.json'
+
     if int(preValue) == int(volt):
 #        print("--------------------------------------------")
         cnt += 1
@@ -199,7 +199,6 @@ if __name__ == '__main__':
     now = datetime.datetime.now()
     date_time = now.strftime("%Y_%m_%d_%H_%M_%S")
     powercount_path = 'root/src/system.json'
-    go_executable = "/root/Aposa2024-raspberrypi/power_count/main"
     SRC_DIR = 'root/src'
     DST_DIR = 'root/src2'
     PREFIX = 'taiwan_'
@@ -244,21 +243,6 @@ if __name__ == '__main__':
     for file in files:
         with open(os.path.join(SRC_DIR,file)) as f:
             lines = f.readlines()
-        for i in range(1,3,1):
-            if lines[i] != '\n':
-                lines[i] = lines[i].replace("'",'"')
-                try:
-                    lines[i] = json.loads(lines[i])
-                    volt = lines[i].get('volt')
-                    rtc_huy = lines[i].get('rtc')
-
-                    if volt is not None:
-                        #cập nhật rtc: 
-                        update_json_key(powercount_path,'rtc',rtc_huy)
-                        run_go_program(go_executable, timeout=2) 
-
-                except Exception as e:
-                    print('--- --- --- ---')
 
         for  line in lines:
             if line != '\n':
