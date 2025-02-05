@@ -7,11 +7,6 @@ import serial
 import time
 import subprocess
 import signal
-import asyncio
-async def delayed_task(x):
-    print("Chờ x giây...")
-    await asyncio.sleep(x)
-    print("Xong!")
 
 def run_go_program(go_executable, timeout=5):
     """
@@ -31,13 +26,13 @@ def run_go_program(go_executable, timeout=5):
         print(f"Chương trình Go đang chạy với PID: {process.pid}")
 
         # Chờ trong khoảng thời gian quy định
-        asyncio.run(delayed_task(timeout))
+        time.sleep(timeout)
 
         # Kiểm tra xem tiến trình còn chạy không
         if process.poll() is None:
             print("Dừng chương trình Go...")
             process.terminate()  # Gửi tín hiệu SIGTERM để dừng
-            asyncio.run(delayed_task(1))  # Đợi 1 giây để tiến trình dừng hẳn
+            time.sleep(1)  # Đợi 1 giây để tiến trình dừng hẳn
 
             # Nếu tiến trình vẫn còn chạy, dùng SIGKILL
             if process.poll() is None:
