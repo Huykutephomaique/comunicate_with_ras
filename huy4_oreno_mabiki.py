@@ -227,13 +227,14 @@ if __name__ == '__main__':
     for file in files:
         with open(os.path.join(SRC_DIR,file)) as f:
             lines = f.readlines()
-        for i in range(1,3,1):
-            if lines[i] != '\n':
-                lines[i] = lines[i].replace("'",'"')
+            fake_lines = lines
+        for i in range(1,4,1):
+            if fake_lines[i] != '\n':
+                fake_lines[i] = fake_lines[i].replace("'",'"')
                 try:
-                    lines[i] = json.loads(lines[i])
-                    volt = lines[i].get('volt')
-                    rtc_huy = lines[i].get('rtc')
+                    fake_lines[i] = json.loads(fake_lines[i])
+                    volt = fake_lines[i].get('volt')
+                    rtc_huy = fake_lines[i].get('rtc')
 
                     if volt is not None:
                         #cập nhật rtc: 
