@@ -20,37 +20,14 @@ def stop_process_after_timeout(process, timeout):
     threading.Timer(timeout, stop).start()
 
 def run_go_program(go_executable, timeout=5):
-    """
-    Chạy chương trình Go đã build và dừng nó sau một khoảng thời gian.
-
-    Args:
-        go_executable (str): Đường dẫn đến file Go đã build.
-        timeout (int): Thời gian chạy trước khi dừng (giây).
-
-    Returns:
-        bool: True nếu dừng thành công, False nếu có lỗi.
-    """
     try:
-        # Chạy chương trình Go (không chờ kết quả)
         process = subprocess.Popen([go_executable], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
         print(f"Chương trình Go đang chạy với PID: {process.pid}")
 
-        # Chờ trong khoảng thời gian quy định
-        asyncio.run(delayed_task(timeout))
+        # Không chặn chương trình chính, chỉ dừng chương trình Go sau `timeout` giây
+        stop_process_after_timeout(process, timeout)
 
-        # Kiểm tra xem tiến trình còn chạy không
-        if process.poll() is None:
-            print("Dừng chương trình Go...")
-            process.terminate()  # Gửi tín hiệu SIGTERM để dừng
-            asyncio.run(delayed_task(1))  # Đợi 1 giây để tiến trình dừng hẳn
-
-            # Nếu tiến trình vẫn còn chạy, dùng SIGKILL
-            if process.poll() is None:
-                os.kill(process.pid, signal.SIGKILL)
-                print("Đã buộc dừng chương trình Go bằng SIGKILL.")
-
-        print("Chương trình Go đã được dừng.")
+        print("Tiếp tục chạy chương trình chính mà không bị chặn.")
 
     except Exception as e:
         print(f"Lỗi khi chạy chương trình Go: {e}")
