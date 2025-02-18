@@ -24,26 +24,26 @@ def run_go_program(go_executable, timeout=TIMEOUT, retries=MAX_RETRIES):
             process = subprocess.Popen([go_executable], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             print(f"[Lần {attempt}] Chương trình Go chạy với PID: {process.pid}")
 
-            # Tạo một luồng riêng để dừng sau `timeout` giây
+            # Giới hạn thời gian chạy
             stop_process_after_timeout(process, timeout)
 
-            # Chờ tiến trình kết thúc trong thời gian tối đa
-            try:
-                process.wait(timeout)
-            except subprocess.TimeoutExpired:
-                print(f"[Lần {attempt}] Quá thời gian {timeout * 1000:.0f}ms, thử lại...")
-                continue  # Chạy lại vòng lặp
+            # Chờ một chút để kiểm tra nếu quá trình hoàn thành sớm
+            time.sleep(0.01)
 
-            # Nếu tiến trình kết thúc sớm hơn timeout, tính thời gian thực tế
-            elapsed_time = (time.time() - start_time) * 1000  # Đổi sang ms
-            print(f"[Lần {attempt}] Gửi thành công trong {elapsed_time:.2f}ms")
-            return  # Thành công, không cần thử lại nữa
+            # Kiểm tra nếu tiến trình đã kết thúc
+            if process.poll() is not None:
+                elapsed_time = (time.time() - start_time) * 1000  # Đổi sang ms
+                print(f"[Lần {attempt}] Gửi thành công trong {elapsed_time:.2f}ms")
 
+            # Nếu quá thời gian mà tiến trình vẫn chạy -> Dừng lại
+            print(f"[Lần {attempt}] Timeout! Thử lại...")
+        
         except Exception as e:
             print(f"[Lần {attempt}] Lỗi: {e}")
 
     print("❌ Đã thử 3 lần nhưng vẫn thất bại!")
-    
+
+
 def stop_process_after_timeout(process, timeout):
     """Tạo một luồng riêng để dừng tiến trình sau `timeout` giây mà không chặn chương trình chính"""
     def stop():
