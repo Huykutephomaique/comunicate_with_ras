@@ -9,7 +9,7 @@ import subprocess
 import signal
 import threading
 
-GO_EXECUTABLE = "root/Aposa2024-raspberrypi/power_count/main"
+GO_EXECUTABLE = "/root/powercount/main"
 MAX_RETRIES = 3  # Số lần thử lại tối đa
 TIMEOUT = 0.05  # Giới hạn thời gian chạy (50ms)
 
@@ -53,8 +53,10 @@ def stop_process_after_timeout(process, timeout):
             threading.Timer(0.01, lambda: os.kill(process.pid, signal.SIGKILL) if process.poll() is None else None).start()
     
     threading.Timer(timeout, stop).start()
-    
-def update_json_key(file_path, key , value, pc):
+
+# Chạy chương trình Go với retry nếu gặp lỗi
+run_go_program(GO_EXECUTABLE, timeout=TIMEOUT, retries=MAX_RETRIES)
+def update_json_key(file_path, key ,value):
     """
     Đọc file JSON, cập nhật giá trị của một khóa, và ghi lại file.
 
@@ -67,7 +69,7 @@ def update_json_key(file_path, key , value, pc):
         bool: True nếu cập nhật thành công, False nếu xảy ra lỗi.
     """
     rewrite_path = 'root/src/stk23_system.json'
-    key_pc = 'powerGoodCount'
+    # key = 'powerGoodCount'
     try:
         # Đọc file JSON
         with open(file_path, 'r') as file:
@@ -76,15 +78,9 @@ def update_json_key(file_path, key , value, pc):
         # Cập nhật giá trị cho khóa
         if key in data:
             data[key] = value
-            print(f"da cap nha '{key}-------{value}' ")
         else:
             print(f"Key '{key}' không tồn tại trong file JSON.")
-        # Cập nhật giá trị cho khóa
-        if key_pc in data:
-            data[key_pc] = pc
-            print(f"da cap nha '{key}-------{pc}' ")
-        else:
-            print(f"Key '{key}' không tồn tại trong file JSON.")
+
         # Ghi lại file JSON
         with open(rewrite_path, 'w') as file:
             json.dump(data, file, indent=4)#indent = none
@@ -130,9 +126,10 @@ def getHantei(preValue,volt,cnt,powercount,rtc_huy):
 #    print(f"cnt is {cnt}")
 #    print(f"preValue is {preValue}")
 #    print(f"volt is {volt}")
+    go_executable = "/root/Aposa2024-raspberrypi/power_count/main"
     powercount_path = 'root/src/system.json'
     if int(preValue) == int(volt):
-#        print(f"-------------------------------------------{powercount}-")
+#        print("--------------------------------------------")
         cnt += 1
     else:
         print("--------------------------------------------")
@@ -143,11 +140,12 @@ def getHantei(preValue,volt,cnt,powercount,rtc_huy):
         print("--------------------------------------------")
         cnt = 0
 
-    if ( int(preValue) - int(volt) >10 ): #(int(preValue) - int(volt) >10):
+    if (int(preValue) - int(volt) >10): #(int(preValue) - int(volt) >10):
         powercount += 1
         print(f'ghi power count neeeeeeeeeee{powercount}')
-        update_json_key(powercount_path,'rtc',rtc_huy,powercount)
-        run_go_program(GO_EXECUTABLE, timeout=TIMEOUT, retries=MAX_RETRIES)
+        update_json_key(powercount_path,'powerGoodCount',powercount)
+        update_json_key(powercount_path,'rtc',rtc_huy)
+        run_go_program(go_executable, timeout=3)
         with open('root/src2/powercount.txt','w') as f:
             f.write(str(powercount)+"\n")    
 
@@ -208,6 +206,7 @@ if __name__ == '__main__':
     now = datetime.datetime.now()
     date_time = now.strftime("%Y_%m_%d_%H_%M_%S")
     powercount_path = 'root/src/system.json'
+    go_executable = "/root/Aposa2024-raspberrypi/power_count/main"
     SRC_DIR = 'root/src'
     DST_DIR = 'root/src2'
     PREFIX = 'taiwan_'
@@ -231,8 +230,8 @@ if __name__ == '__main__':
 
     # gaibu kara preValue kaisyuu 
     powercount = getPowercount()
-    print(f"get powercount ---- {powercount}")
-    update_json_key(powercount_path,'powerGoodCount',powercount,powercount)
+    print(f"powerwerwerneee {powercount}")
+    update_json_key(powercount_path,'powerGoodCount',powercount)
 
     preValue = getPrevious()
     cnt = getCount()
@@ -248,12 +247,12 @@ if __name__ == '__main__':
     files = os.listdir(SRC_DIR)
     files = sorted([file for file in files if file.startswith(PREFIX)])
 
-    first = 1
+    first = 1 
     for file in files:
         with open(os.path.join(SRC_DIR,file)) as f:
             lines = f.readlines()
             fake_lines = lines
-        if first == 1: 
+        if first == 1:
             for i in fake_lines[:4]:
                 if i != '\n':
                     i = i.replace("'",'"')
@@ -264,12 +263,12 @@ if __name__ == '__main__':
 
                         if volt is not None:
                             #cập nhật rtc: 
-                            update_json_key(powercount_path,'rtc',rtc_huy,powercount)
-                            run_go_program(GO_EXECUTABLE, timeout=TIMEOUT, retries=MAX_RETRIES) 
+                            update_json_key(powercount_path,'rtc',rtc_huy)
+                            run_go_program(go_executable, timeout=2) 
 
                     except Exception as e:
                         print('--- --- --- ---')
-        
+        first += 1 
         for  line in lines:
             if line != '\n':
                 line = line.replace("'",'"')
@@ -305,8 +304,7 @@ if __name__ == '__main__':
                 except Exception as e:
                     print('--- --- --- ---')
                     print(e)
-        os.rename(os.path.join(SRC_DIR,file),os.path.join('root/dst',file))
-        first += 1
+        os.rename(os.path.join(SRC_DIR,file),os.path.join('/root/dst',file))
 
 
     with open(os.path.join(DST_DIR,'preValue.txt'),'w') as f:
