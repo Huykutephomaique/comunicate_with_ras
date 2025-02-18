@@ -7,55 +7,50 @@ import serial
 import time
 import subprocess
 import signal
-import threading
+import asyncio
+async def delayed_task(x):
+    print("Chờ x giây...")
+    await asyncio.sleep(x)
+    print("Xong!")
 
-GO_EXECUTABLE = "/root/powercount/main"
-MAX_RETRIES = 3  # Số lần thử lại tối đa
-TIMEOUT = 0.05  # Giới hạn thời gian chạy (50ms)
-
-def run_go_program(go_executable, timeout=TIMEOUT, retries=MAX_RETRIES):
+def run_go_program(go_executable, timeout=5):
     """
-    Chạy chương trình Go và tự động thử lại nếu thất bại.
-    Giới hạn thời gian tối đa để tránh bị treo lâu.
+    Chạy chương trình Go đã build và dừng nó sau một khoảng thời gian.
+
+    Args:
+        go_executable (str): Đường dẫn đến file Go đã build.
+        timeout (int): Thời gian chạy trước khi dừng (giây).
+
+    Returns:
+        bool: True nếu dừng thành công, False nếu có lỗi.
     """
-    for attempt in range(1, retries + 1):
-        try:
-            start_time = time.time()
-            process = subprocess.Popen([go_executable], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            print(f"[Lần {attempt}] Chương trình Go chạy với PID: {process.pid}")
+    try:
+        # Chạy chương trình Go (không chờ kết quả)
+        process = subprocess.Popen([go_executable], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-            # Giới hạn thời gian chạy
-            stop_process_after_timeout(process, timeout)
+        print(f"Chương trình Go đang chạy với PID: {process.pid}")
 
-            # Chờ một chút để kiểm tra nếu quá trình hoàn thành sớm
-            time.sleep(0.01)
+        # Chờ trong khoảng thời gian quy định
+        asyncio.run(delayed_task(timeout))
 
-            # Kiểm tra nếu tiến trình đã kết thúc
-            if process.poll() is not None:
-                elapsed_time = (time.time() - start_time) * 1000  # Đổi sang ms
-                print(f"[Lần {attempt}] Gửi thành công trong {elapsed_time:.2f}ms")
-
-            # Nếu quá thời gian mà tiến trình vẫn chạy -> Dừng lại
-            print(f"[Lần {attempt}] Timeout! Thử lại...")
-        
-        except Exception as e:
-            print(f"[Lần {attempt}] Lỗi: {e}")
-
-    print("❌ Đã thử 3 lần nhưng vẫn thất bại!")
-
-
-def stop_process_after_timeout(process, timeout):
-    """Tạo một luồng riêng để dừng tiến trình sau `timeout` giây mà không chặn chương trình chính"""
-    def stop():
-        if process.poll() is None:  # Nếu tiến trình vẫn đang chạy
+        # Kiểm tra xem tiến trình còn chạy không
+        if process.poll() is None:
             print("Dừng chương trình Go...")
-            process.terminate()
-            threading.Timer(0.01, lambda: os.kill(process.pid, signal.SIGKILL) if process.poll() is None else None).start()
-    
-    threading.Timer(timeout, stop).start()
+            process.terminate()  # Gửi tín hiệu SIGTERM để dừng
+            asyncio.run(delayed_task(1))  # Đợi 1 giây để tiến trình dừng hẳn
 
-# Chạy chương trình Go với retry nếu gặp lỗi
-run_go_program(GO_EXECUTABLE, timeout=TIMEOUT, retries=MAX_RETRIES)
+            # Nếu tiến trình vẫn còn chạy, dùng SIGKILL
+            if process.poll() is None:
+                os.kill(process.pid, signal.SIGKILL)
+                print("Đã buộc dừng chương trình Go bằng SIGKILL.")
+
+        print("Chương trình Go đã được dừng.")
+        return True
+
+    except Exception as e:
+        print(f"Lỗi khi chạy chương trình Go: {e}")
+        return False
+    
 def update_json_key(file_path, key ,value):
     """
     Đọc file JSON, cập nhật giá trị của một khóa, và ghi lại file.
@@ -80,13 +75,16 @@ def update_json_key(file_path, key ,value):
             data[key] = value
         else:
             print(f"Key '{key}' không tồn tại trong file JSON.")
+            return False
 
         # Ghi lại file JSON
         with open(rewrite_path, 'w') as file:
             json.dump(data, file, indent=4)#indent = none
-        
+        return True
+
     except Exception as e:
         print(f"Lỗi: {e}")
+        return False
 
 def getPowercount():
     with open('root/src2/powercount.txt') as f:
@@ -230,7 +228,7 @@ if __name__ == '__main__':
 
     # gaibu kara preValue kaisyuu 
     powercount = getPowercount()
-    print(f"powerwerwerneee {powercount}")
+    print(powercount)
     update_json_key(powercount_path,'powerGoodCount',powercount)
 
     preValue = getPrevious()
@@ -247,28 +245,26 @@ if __name__ == '__main__':
     files = os.listdir(SRC_DIR)
     files = sorted([file for file in files if file.startswith(PREFIX)])
 
-    first = 1 
+
     for file in files:
         with open(os.path.join(SRC_DIR,file)) as f:
             lines = f.readlines()
-            fake_lines = lines
-        if first == 1:
-            for i in fake_lines[:4]:
-                if i != '\n':
-                    i = i.replace("'",'"')
-                    try:
-                        i = json.loads(i)
-                        volt = i.get('volt')
-                        rtc_huy = i.get('rtc')
+        for i in range(1,3,1):
+            if lines[i] != '\n':
+                lines[i] = lines[i].replace("'",'"')
+                try:
+                    lines[i] = json.loads(lines[i])
+                    volt = lines[i].get('volt')
+                    rtc_huy = lines[i].get('rtc')
 
-                        if volt is not None:
-                            #cập nhật rtc: 
-                            update_json_key(powercount_path,'rtc',rtc_huy)
-                            run_go_program(go_executable, timeout=2) 
+                    if volt is not None:
+                        #cập nhật rtc: 
+                        update_json_key(powercount_path,'rtc',rtc_huy)
+                        run_go_program(go_executable, timeout=2) 
 
-                    except Exception as e:
-                        print('--- --- --- ---')
-        first += 1 
+                except Exception as e:
+                    print('--- --- --- ---')
+
         for  line in lines:
             if line != '\n':
                 line = line.replace("'",'"')
@@ -304,7 +300,7 @@ if __name__ == '__main__':
                 except Exception as e:
                     print('--- --- --- ---')
                     print(e)
-        os.rename(os.path.join(SRC_DIR,file),os.path.join('/root/dst',file))
+        os.rename(os.path.join(SRC_DIR,file),os.path.join('root/dst',file))
 
 
     with open(os.path.join(DST_DIR,'preValue.txt'),'w') as f:
