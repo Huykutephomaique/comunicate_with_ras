@@ -10,31 +10,32 @@ import signal
 import threading
 
 GO_EXECUTABLE = "root/Aposa2024-raspberrypi/power_count/main"
-MAX_RETRIES = 3 # Số lần thử lại tối đa
-TIMEOUT = 0.07  # Giới hạn thời gian chạy (50ms)
+MAX_RETRIES = 3  # Số lần thử lại tối đa
+TIMEOUT = 0.05  # Giới hạn thời gian chạy (50ms)
 
 def run_go_program(go_executable, timeout=TIMEOUT, retries=MAX_RETRIES):
-    """Chạy chương trình Go và chờ nó kết thúc trước khi tiếp tục Python."""
+    """
+    Chạy chương trình Go và tự động thử lại nếu thất bại.
+    Giới hạn thời gian tối đa để tránh bị treo lâu.
+    """
     for attempt in range(1, retries + 1):
         try:
             start_time = time.time()
             process = subprocess.Popen([go_executable], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             print(f"[Lần {attempt}] Chương trình Go chạy với PID: {process.pid}")
 
-            # Chờ Go kết thúc trong giới hạn thời gian
-            try:
-                process.wait(timeout=timeout)  # Chờ tối đa `timeout` giây
-            except subprocess.TimeoutExpired:
-                print(f"[Lần {attempt}] Quá thời gian {timeout * 1000:.0f}ms, dừng Go...")
-                process.terminate()  # Dừng tiến trình Go nếu quá thời gian
-                try:
-                    process.wait(0.01)  # Đợi một chút để chắc chắn tiến trình đã tắt
-                except subprocess.TimeoutExpired:
-                    os.kill(process.pid, signal.SIGKILL)  # Nếu vẫn chưa tắt, kill tiến trình
-                continue  # Thử lại vòng lặp
+            # Tạo một luồng riêng để dừng sau `timeout` giây
+            stop_process_after_timeout(process, timeout)
 
-            # Nếu Go kết thúc trong thời gian hợp lý, tính thời gian thực tế
-            elapsed_time = (time.time() - start_time) * 1000  # ms
+            # Chờ tiến trình kết thúc trong thời gian tối đa
+            try:
+                process.wait(timeout)
+            except subprocess.TimeoutExpired:
+                print(f"[Lần {attempt}] Quá thời gian {timeout * 1000:.0f}ms, thử lại...")
+                continue  # Chạy lại vòng lặp
+
+            # Nếu tiến trình kết thúc sớm hơn timeout, tính thời gian thực tế
+            elapsed_time = (time.time() - start_time) * 1000  # Đổi sang ms
             print(f"[Lần {attempt}] Gửi thành công trong {elapsed_time:.2f}ms")
             return  # Thành công, không cần thử lại nữa
 
@@ -42,6 +43,16 @@ def run_go_program(go_executable, timeout=TIMEOUT, retries=MAX_RETRIES):
             print(f"[Lần {attempt}] Lỗi: {e}")
 
     print("❌ Đã thử 3 lần nhưng vẫn thất bại!")
+    
+def stop_process_after_timeout(process, timeout):
+    """Tạo một luồng riêng để dừng tiến trình sau `timeout` giây mà không chặn chương trình chính"""
+    def stop():
+        if process.poll() is None:  # Nếu tiến trình vẫn đang chạy
+            print("Dừng chương trình Go...")
+            process.terminate()
+            threading.Timer(0.01, lambda: os.kill(process.pid, signal.SIGKILL) if process.poll() is None else None).start()
+    
+    threading.Timer(timeout, stop).start()
     
 def update_json_key(file_path, key , value, pc):
     """
@@ -269,7 +280,7 @@ if __name__ == '__main__':
                     rtc_huy = line.get('rtc')
 
                     if volt is not None:
-                        if volt > 20000:
+                        if volt > 15000:
                             volt = 24
                             g_volt = 24
                         else:
